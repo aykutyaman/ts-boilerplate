@@ -1,0 +1,23 @@
+{
+  "include": ["shared", "server", "client"],
+  "compilerOptions": {
+    "target": "es5",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "outDir": "./build"
+  },
+  "exclude": [
+    "node_modules",
+    "client/dist",
+    "server/dist"
+  ]
+}

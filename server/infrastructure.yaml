@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Description: Boilerplate application
+Resources:
+  MetricsLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: main.handler
+      Runtime: nodejs12.x
+      MemorySize: 512
+      Timeout: 20
+      CodeUri: dist/clouldwatch.zip
+      Policies:
+        - AWSLambdaExecute
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "clouldwatch:Get*"
+                - "clouldwatch:List*"
+              Resource:
+                - "*"
