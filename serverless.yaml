@@ -1,0 +1,66 @@
+org: aykutyaman
+app: serverless
+service: serverless
+
+custom:
+  tableName: 'todos1-table-${sls:stage}'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: '20201221'
+  region: eu-central-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [ TodosTable, Arn ]
+  environment:
+    TODOS_TABLE: ${self:custom.tableName}
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-typescript
+functions:
+  api:
+    handler: server/handler.hello
+    events:
+      - httpApi: '*'
+
+
+resources:
+  Resources:
+    TodosTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: pk
+            AttributeType: S
+          -
+            AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: pk
+            KeyType: HASH
+          -
+            AttributeName: sk
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.tableName}
+
+#GlobalSecondaryIndexes
+#https://github.com/serverless-examples/todo-serverless/blob/master/aws/serverless.yml
+#https://github.com/serverless/examples/blob/cf08befc3925b8558229af1a987d05a2aadbf8ff/aws-dotnet-rest-api-with-dynamodb/src/DotNetServerless.Lambda/serverless.yml

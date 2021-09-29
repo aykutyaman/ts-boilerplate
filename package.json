@@ -14,18 +14,22 @@
     "@types/uuid": "^8.3.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "fp-ts": "^2.11.3",
     "fp-ts-std": "^0.11.0",
+    "io-ts": "^2.2.16",
     "io-ts-reporters": "^2.0.0",
     "io-ts-types": "^0.5.16",
     "monocle-ts": "^2.3.11",
     "newtype-ts": "^0.3.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "serverless-http": "^2.7.0",
     "uuid": "^8.3.2",
     "web-vitals": "^1.0.1"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.15.0",
+    "@types/aws-lambda": "^8.10.83",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
@@ -33,29 +37,38 @@
     "@typescript-eslint/typescript-estree": "4.31.1",
     "aws-sdk": "^2.994.0",
     "concurrently": "^6.2.1",
+    "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",
     "html-webpack-plugin": "^5.3.2",
+    "jest": "^27.2.2",
     "nodemon": "^2.0.12",
     "prettier": "^2.4.0",
+    "serverless-offline": "^8.2.0",
+    "serverless-plugin-typescript": "^2.1.0",
+    "ts-jest": "^27.0.5",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3",
-    "webpack": "^5.53.0",
+    "webpack": "^5.54.0",
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.2.1"
   },
   "scripts": {
     "start": "concurrently \"yarn server-start\" \"yarn client-start\"",
-    "server-start": "nodemon",
+    "server-start": "cross-env nodemon",
     "client-start": "webpack-dev-server --mode development --config client/webpack.config.js",
     "prettier-check": "prettier --parser=typescript \"{**/*,*}.{js,jsx,ts,tsx}\" --list-different && prettier --parser=css \"{**/*,*}.css\" --list-different",
+    "test": "cross-env TODOS_TABLE=todos1-table-dev jest --coverage",
     "prettier-write": "prettier --parser=typescript \"{**/*,*}.{js,jsx,ts,tsx}\" --write && prettier --parser=css \"{**/*,*}.css\" --write",
     "eslint-check": "yarn eslint \"{**/*,*}.{js,jsx,ts,tsx}\"",
     "clean": "rm -rf node_modules && rm -rf dist",
-    "zip": "cd server/dist && zip -r clouldwatch.zip *",
-    "build:server": "yarn && webpack --config server/webpack.config.prod.js && yarn run zip",
-    "build:client": "yarn && webpack --config client/webpack.config.prod.js"
+    "deploy": "yarn deploy:client && yarn deploy:server",
+    "build:client": "yarn && webpack --config client/webpack.config.prod.js",
+    "deploy:server": "serverless deploy",
+    "predeploy:client": "yarn build:client",
+    "deploy:client": "aws s3 sync client/dist/ s3://boilerplate-app-client --delete",
+    "postdeploy:client": "cd client && rm -rf dist"
   },
   "nodemonConfig": {
     "watch": [
@@ -63,7 +76,8 @@
       "shared"
     ],
     "ext": "ts",
-    "exec": "ts-node ./server"
+    "exec": "cross-env TODOS_TABLE=todos1-table-dev ts-node ./server",
+    "delay": 8
   },
   "eslintConfig": {
     "extends": []

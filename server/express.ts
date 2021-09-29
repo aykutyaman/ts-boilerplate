@@ -5,18 +5,25 @@ import { failure } from "io-ts/PathReporter";
 import * as t from "io-ts";
 import { record } from "fp-ts/Record";
 import { pipe } from "fp-ts/function";
+import * as TE from "fp-ts/TaskEither";
 
-type Controller<I, O> = (input: I) => Promise<O>;
+// type Controller<I, O> = (input: I) => Promise<O>;
+type Controller<I, O> = (input: I) => TE.TaskEither<string, O>;
 
 const addEndpointToExpress = <I, O>(app: Application, endpoint: Endpoint<I,O>, controller: Controller<I, O>) => {
   app.post(endpoint.path, (req, res) => pipe(
     endpoint.input.decode(req.body),
     E.bimap(
       errors => res.send(422).send(failure(errors).join("\n")),
-      decodedInput => controller(decodedInput).then(
-        output => res.status(200).json(endpoint.output.encode(output)),
-        (e) => res.status(500).end(e)
-      )
+      decodedInput => {
+        controller(decodedInput)().then(result => pipe(
+          result,
+          E.fold(
+            e => res.status(500).end(e),
+            output => res.status(200).json(endpoint.output.encode(output))
+          )
+        ));
+      }
     )
   ));
 }

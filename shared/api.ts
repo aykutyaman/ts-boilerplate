@@ -12,7 +12,8 @@ export const eqTodosPayload = Eq.struct<TodosPayload>({
 })
 
 export const TogglePayload = t.type({
-  id: t.string
+  id: t.string,
+  completed: t.boolean
 }, "TogglePayload");
 export type TogglePayload = t.TypeOf<typeof TogglePayload>;
 

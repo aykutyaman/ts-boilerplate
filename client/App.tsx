@@ -10,12 +10,12 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 
 type TodoProps = {
-  todo: D.Todo, onTodoDelete: (id: string) => void, onToggle: (id: string) => void
+  todo: D.Todo, onTodoDelete: (id: string) => void, onToggle: (id: string, completed: boolean) => void
 }
 const Todo = ({ todo, onTodoDelete, onToggle }: TodoProps): JSX.Element => {
   return (
     <li style={{listStyleType: "none"}}>
-      <input type="checkbox" checked={!!todo.completed} onChange={() => onToggle(todo.id)}/>
+      <input type="checkbox" checked={!!todo.completed} onChange={() => onToggle(todo.id, !todo.completed)}/>
         {todo.text} - {todo.creationDate.toDateString()}
         <button onClick={() => onTodoDelete(todo.id)}>
         x
@@ -27,7 +27,7 @@ const Todo = ({ todo, onTodoDelete, onToggle }: TodoProps): JSX.Element => {
 type TodosProps = {
   todos: RD.RemoteData<unknown, D.Todos>,
   onTodoDelete: (id: string) => void,
-  onToggle: (id: string) => void
+  onToggle: (id: string, completed: boolean) => void
 }
 const Todos = ({ todos, onTodoDelete, onToggle }: TodosProps): JSX.Element | null => (
   pipe(
@@ -59,9 +59,9 @@ const App = (): JSX.Element => {
     )
   }
 
-  const onToggle = (id: string) => {
+  const onToggle = (id: string, completed: boolean) => {
     pipe(
-      api.toggleTodo({ id }),
+      api.toggleTodo({ id, completed }),
       TE.map(toggled => toggled && mutate()),
       f => f()
     )
