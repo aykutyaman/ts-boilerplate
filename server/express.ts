@@ -6,9 +6,10 @@ import * as t from "io-ts";
 import { record } from "fp-ts/Record";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
+import { Error } from "./error";
 
 // type Controller<I, O> = (input: I) => Promise<O>;
-type Controller<I, O> = (input: I) => TE.TaskEither<string, O>;
+type Controller<I, O> = (input: I) => TE.TaskEither<Error, O>;
 
 const addEndpointToExpress = <I, O>(app: Application, endpoint: Endpoint<I,O>, controller: Controller<I, O>) => {
   app.post(endpoint.path, (req, res) => pipe(

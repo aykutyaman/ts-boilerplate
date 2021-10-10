@@ -21,7 +21,7 @@ export const fetchAPI = (fetchConfig: FetchConfig): TE.TaskEither<unknown, unkno
   const headers = new Headers({
     "Content-Type": "application/json",
   });
-  
+
   console.log('her', `${url}?${params}`)
   return pipe(
     body,
@@ -37,4 +37,3 @@ export const fetchAPI = (fetchConfig: FetchConfig): TE.TaskEither<unknown, unkno
         }).then(res => res.json()), identity)
     ))
 }
-

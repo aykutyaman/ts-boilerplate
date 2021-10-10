@@ -48,7 +48,7 @@ const Todos = ({ todos, onTodoDelete, onToggle }: TodosProps): JSX.Element | nul
 const App = (): JSX.Element => {
   const [text, setText] = useState('');
   const [status, setStatus] = useState<D.Status>("all");
-  
+
   const [todos, mutate] = useAPI(api.getTodos, { status }, eqTodosPayload);
 
   const onTodoDelete = (id: string) => {
