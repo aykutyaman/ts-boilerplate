@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-redeclare */
 import * as t from "io-ts";
 import * as Eq from "fp-ts/Eq";
-import { DateFromISOString, UUID } from "io-ts-types";
+import { DateFromISOString, DateFromISOStringC, UUID } from "io-ts-types";
 
 export const Color = t.union([t.literal("green"), t.literal("blue"), t.literal("red")])
 export type Color = t.TypeOf<typeof Color>;
@@ -34,4 +34,3 @@ export const eqFilter = Eq.struct<Filter>({
   color: eqColor,
   status: eqStatus
 })
-

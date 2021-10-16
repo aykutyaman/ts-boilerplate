@@ -1,17 +1,19 @@
 import { Application, json } from "express";
 import { Endpoint } from "../shared/dsl";
 import * as E from "fp-ts/Either";
+import { record } from "fp-ts/Record";
+import { prepend, unlines } from "fp-ts-std/String";
 import { failure } from "io-ts/PathReporter";
 import * as t from "io-ts";
-import { record } from "fp-ts/Record";
-import { pipe } from "fp-ts/function";
+import { pipe, constant } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
-import { Error } from "./error";
+import { Error, fold as foldError  } from "./error";
 
-// type Controller<I, O> = (input: I) => Promise<O>;
 type Controller<I, O> = (input: I) => TE.TaskEither<Error, O>;
 
-const addEndpointToExpress = <I, O>(app: Application, endpoint: Endpoint<I,O>, controller: Controller<I, O>) => {
+const addEndpointToExpress = <I, O>(
+  app: Application, endpoint: Endpoint<I,O>, controller: Controller<I, O>
+) => {
   app.post(endpoint.path, (req, res) => pipe(
     endpoint.input.decode(req.body),
     E.bimap(
@@ -20,7 +22,15 @@ const addEndpointToExpress = <I, O>(app: Application, endpoint: Endpoint<I,O>, c
         controller(decodedInput)().then(result => pipe(
           result,
           E.fold(
-            e => res.status(500).end(e),
+            e => pipe(
+              e,
+              foldError<string>(
+                constant("AWS request error"),
+                constant("Database error"),
+                ({ errors }) => pipe(failure(errors), unlines, prepend("Deconding error:")),
+              ),
+              message => res.status(500).send(message)
+            ),
             output => res.status(200).json(endpoint.output.encode(output))
           )
         ));

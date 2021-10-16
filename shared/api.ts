@@ -1,7 +1,7 @@
 import * as t from "io-ts";
 import * as Eq from "fp-ts/Eq";
 import { Endpoint } from "./dsl";
-import { Status, Todos, eqStatus } from "./domain";
+import { Status, Todos, eqStatus, Todo } from "./domain";
 
 export const TodosPayload = t.type({
   status: Status
@@ -29,7 +29,7 @@ export type DeleteTodoPayload = t.TypeOf<typeof DeleteTodoPayload>;
 
 export const api = {
   getTodos: Endpoint("/api/todos", TodosPayload, Todos),
-  toggleTodo: Endpoint("/api/todos/toggle", TogglePayload, t.boolean),
+  toggleTodo: Endpoint("/api/todos/toggle", TogglePayload, Todo),
   deleteTodo: Endpoint("/api/todos/delete", DeleteTodoPayload, t.boolean),
-  addTodo: Endpoint("/api/todos/add", AddTodoPayload, t.string)
+  addTodo: Endpoint("/api/todos/add", AddTodoPayload, Todo)
 }

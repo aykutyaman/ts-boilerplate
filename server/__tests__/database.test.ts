@@ -1,11 +1,14 @@
-import { PutItemInput, UpdateItemInput } from "aws-sdk/clients/dynamodb";
 import { v4 as uuid } from "uuid";
-import { save, update, query } from "../awsCalls";
+import { save, update, query, remove } from "../awsCalls";
 import { config } from "../config";
+
+import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
+import PutItemInput = DocumentClient.PutItemInput;
+import UpdateItemInput = DocumentClient.UpdateItemInput;
 
 describe("database experiments to know better dynamodb", () => {
   test("create", (done) => {
-    const params = {
+    const params: PutItemInput = {
       TableName: config.TODOS_TABLE,
       Item: {
         pk: "user#1",
@@ -17,20 +20,19 @@ describe("database experiments to know better dynamodb", () => {
           color: "red"
         }
       }
-    } as PutItemInput;
+    };
 
     save(params).then(x => {
-      console.log(x);
       done();
     })
   })
 
   test.only("update", (done) => {
-    const params = {
-      TableName: "todos1-table-dev",
+    const params: DocumentClient.UpdateItemInput = {
+      TableName: config.TODOS_TABLE,
       Key: {
         pk: "user#1",
-        sk: "todo#188813e5-7877-4aa4-9917-b39e47756c20"
+        sk: "todo#b27b3d55-2647-45ce-a588-8a341420e9f1"
       },
       UpdateExpression: "set #data.#completed = :newcompleted",
       ExpressionAttributeNames: {
@@ -41,7 +43,7 @@ describe("database experiments to know better dynamodb", () => {
         ":newcompleted": true
       },
       ReturnValues: "ALL_NEW"
-    } as UpdateItemInput;
+    }
 
     update(params).then(x => {
       console.log(x);
@@ -53,17 +55,32 @@ describe("database experiments to know better dynamodb", () => {
   })
 
   test("query", (done) => {
-    const params = {
+    const params: DocumentClient.QueryInput = {
       TableName: config.TODOS_TABLE,
       KeyConditionExpression: "pk = :userid and begins_with(sk, :todokey)",
       ExpressionAttributeValues: {
         ":userid": "user#1",
         ":todokey": "todo#"
       }
-    } as any;
+    };
 
-    query(params).then((x: any) => {
-      // console.log(JSON.stringify(x, null, 2)); 
+    query(params).then(x => {
+      // console.log(JSON.stringify(x, null, 2));
+      done();
+    })
+  })
+
+  test.only("query", (done) => {
+    const params: DocumentClient.DeleteItemInput = {
+      TableName: config.TODOS_TABLE,
+      Key: {
+        pk: "user#1",
+        sk: `todo#448e93fd-4071-4fbd-b285-d868a8314eab`
+      }
+    };
+
+    remove(params).then(x => {
+      // console.log(JSON.stringify(x, null, 2));
       done();
     })
   })
