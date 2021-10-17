@@ -1,9 +1,10 @@
 import { constant, flow, pipe } from "fp-ts/function";
 import * as A from "fp-ts/Array";
+import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
+import * as S from "fp-ts/State";
 import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
 import * as E from "fp-ts/Either";
-import { v4 as uuid } from "uuid";
 import { TodosPayload, TogglePayload, AddTodoPayload, DeleteTodoPayload } from "../shared/api";
 import { Todo, Todos } from "../shared/domain";
 import * as TE from "fp-ts/TaskEither";
@@ -11,6 +12,8 @@ import { query, remove, save, update } from "./awsCalls";
 import { config } from "./config";
 import { has } from "fp-ts/lib/ReadonlyRecord";
 import { AWSReject, decodingErrors, dynamoDBItemError, Error } from "./error";
+import { uuid } from "./random";
+import { UUID } from "io-ts-types";
 
 export const getTodos = ({ status }: TodosPayload): TE.TaskEither<Error, Todos> => {
   const params: DocumentClient.QueryInput = {
@@ -78,9 +81,21 @@ export const toggleTodo = ({ id, completed }: TogglePayload): TE.TaskEither<Erro
 
 export const addTodo = ({ text }: AddTodoPayload): TE.TaskEither<Error, Todo> => pipe(
   TE.Do,
-  TE.bind("todo", () => pipe(
+  TE.bind("uuid", () => pipe(
+    IO.Do,
+    IO.bind("seed", () => IO.of(new Date().getTime())),
+    IO.map(({ seed }) => pipe(
+      uuid,
+      S.evaluate(seed),
+      UUID.decode,
+      E.mapLeft(decodingErrors),
+    )),
+    TE.fromIO,
+    TE.chain(TE.fromEither),
+  )),
+  TE.bind("todo", ({ uuid }) => pipe(
     Todo.decode({
-      id: uuid(),
+      id: uuid,
       text,
       completed: false,
       color: "green",
